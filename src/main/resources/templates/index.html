@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Catálogo de Películas</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7" crossorigin="anonymous">
+    <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="css/estiloIndex.css">
+</head>
+
+<body>
+    <header class="bg-dark text-white py-3">
+        <nav class="navbar navbar-expand-lg navbar-dark">
+            <div class="container">
+                <div id="fechaHora" class="me-3"></div>
+
+                <a class="navbar-brand" th:href="@{/}">WIKIMovies</a>
+
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto align-items-center">
+
+                        <li class="nav-item"><a class="nav-link" th:href="@{/}">Página Principal</a></li>
+                        <li class="nav-item"><a class="nav-link" th:href="@{/accion}">Acción</a></li>
+                        <li class="nav-item"><a class="nav-link" th:href="@{/aventura}">Aventura</a></li>
+                        <li class="nav-item"><a class="nav-link" th:href="@{/ciencia}">Ciencia Ficción</a></li>
+                        <li class="nav-item"><a class="nav-link" th:href="@{/comedia}">Comedia</a></li>
+                        <li class="nav-item"><a class="nav-link" th:href="@{/drama}">Drama</a></li>
+
+                        <!-- Usuario logueado -->
+                        <li class="nav-item dropdown" th:if="${usuario != null}">
+                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button"
+                                id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <img th:src="@{${usuario.foto} ?: '/assets/img/PersonaLogin.png'}"
+                                    class="rounded-circle me-2" alt="Usuario" width="32" height="32">
+                                <span th:text="${usuario.nombres}">Usuario</span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                <li><a class="dropdown-item" th:href="@{/logout}">Cerrar sesión</a></li>
+                            </ul>
+                        </li>
+
+                        <!-- Usuario no logueado -->
+                        <li class="nav-item" th:if="${usuario == null}">
+                            <a class="nav-link" href="/login">Iniciar Sesión</a>
+                        </li>
+                        <li class="nav-item" th:if="${usuario == null}">
+                            <a class="nav-link" href="/registro">Registrarse</a>
+                        </li>
+
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+
+    <section class="container mt-4">
+        <h2>Categoría de Películas</h2>
+        <div class="row">
+            <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-xl-5">
+                <div class="col mb-4" th:each="peliculaInicio : ${peliculaIniciosHardcodeadas}">
+                    <div class="card categoria">
+                        <a th:href="@{${peliculaInicio.enlace}}">
+                            <img class="card-img-top categoria-img" th:src="@{${peliculaInicio.imagen}}"
+                                th:alt="${peliculaInicio.nombre}" />
+                            <div class="card-body">
+                                <p class="card-text" th:text="${peliculaInicio.nombre}"></p>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="text-center mt-4">
+        <h2>Video de Presentación</h2>
+        <div class="container">
+            <div class="ratio ratio-16x9">
+                <video src="assets/videos/videoPresentacion.mp4" class="w-100" controls></video>
+            </div>
+        </div>
+    </section>
+
+
+    <footer class="bg-dark text-white py-3 mt-4">
+        <div class="container">
+            <ul class="nav justify-content-center border-bottom pb-3 mb-3">
+                <li class="nav-item"><a href="" class="nav-link px-2 link-light">Página Principal</a></li>
+                <li class="nav-item"><a href="" class="nav-link px-2 link-light">Acción</a></li>
+                <li class="nav-item"><a href="" class="nav-link px-2 link-light">Aventura</a></li>
+                <li class="nav-item"><a href="" class="nav-link px-2 link-light">Ciencia Ficción</a></li>
+                <li class="nav-item"><a href="" class="nav-link px-2 link-light">Comedia</a></li>
+                <li class="nav-item"><a href="" class="nav-link px-2 link-light">Drama</a></li>
+            </ul>
+            <p class="text-center">&copy; 2025 Catálogo de Películas</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDxyJxEd7v4AuFUYOub+31z7g=="
+        crossorigin="anonymous"></script>
+    <script>
+        // Script para fecha y hora (puedes implementarlo con JS)
+        document.getElementById("fechaHora").innerText = new Date().toLocaleString();
+    </script>
+</body>
+
+</html>

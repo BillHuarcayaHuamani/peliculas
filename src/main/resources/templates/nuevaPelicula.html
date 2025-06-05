@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Subir Nueva Película</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7" crossorigin="anonymous">
+    <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="css/estiloIndex.css">
+</head>
+
+<body>
+    <header class="bg-dark text-white py-3">
+        <nav class="navbar navbar-expand-lg navbar-dark">
+            <div class="container">
+                <div id="fechaHora" class="me-3"></div>
+
+                <a class="navbar-brand" th:href="@{/}">WIKIMovies</a>
+
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto align-items-center">
+                        <li class="nav-item"><a class="nav-link" th:href="@{/}">Página Principal</a></li>
+                        <li class="nav-item"><a class="nav-link" th:href="@{/accion}">Acción</a></li>
+                        <li class="nav-item"><a class="nav-link" th:href="@{/aventura}">Aventura</a></li>
+                        <li class="nav-item"><a class="nav-link" th:href="@{/ciencia}">Ciencia Ficción</a></li>
+                        <li class="nav-item"><a class="nav-link" th:href="@{/comedia}">Comedia</a></li>
+                        <li class="nav-item"><a class="nav-link" th:href="@{/drama}">Drama</a></li>
+
+                        <!-- Usuario logueado -->
+                        <li class="nav-item dropdown" th:if="${usuario != null}">
+                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button"
+                                id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <img th:src="@{${usuario.foto} ?: '/assets/img/PersonaLogin.png'}"
+                                    class="rounded-circle me-2" alt="Usuario" width="32" height="32">
+                                <span th:text="${usuario.nombres}">Usuario</span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                <li><a class="dropdown-item" th:href="@{/logout}">Cerrar sesión</a></li>
+                            </ul>
+                        </li>
+
+                        <!-- Usuario no logueado -->
+                        <li class="nav-item" th:if="${usuario == null}">
+                            <a class="nav-link" href="/login">Iniciar Sesión</a>
+                        </li>
+                        <li class="nav-item" th:if="${usuario == null}">
+                            <a class="nav-link" href="/registro">Registrarse</a>
+                        </li>
+
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card shadow">
+                    <div class="card-header bg-success text-white">
+                        <h4 class="mb-0">Subir Nueva Película</h4>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="@{/peliculas}" th:object="${pelicula}" method="post" enctype="multipart/form-data">
+
+                            <p th:if="${mensaje}" class="alert alert-success mt-3" th:text="${mensaje}"></p>
+                            <p th:if="${error}" class="alert alert-danger mt-3" th:text="${error}"></p>
+
+                            <div class="mb-3">
+                                <label for="titulo" class="form-label">Título</label>
+                                <input type="text" th:field="*{titulo}" class="form-control" placeholder="Título de la película" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="descripcion" class="form-label">Descripción</label>
+                                <textarea th:field="*{descripcion}" class="form-control" rows="3" placeholder="Breve descripción de la película"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="portadaFile" class="form-label">Imagen de Portada</label>
+                                <input type="file" id="portadaFile" name="portadaFile" class="form-control" accept="image/*" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="videoFile" class="form-label">Archivo de Video (Trailer/Clip)</label>
+                                <input type="file" id="videoFile" name="videoFile" class="form-control" accept="video/*">
+                            </div>
+                            <div class="mb-3">
+                                <label for="genero" class="form-label">Género</label>
+                                <input type="text" th:field="*{genero}" class="form-control" placeholder="Ej: Acción, Drama, Comedia">
+                            </div>
+                            <div class="mb-3">
+                                <label for="director" class="form-label">Director</label>
+                                <input type="text" th:field="*{director}" class="form-control" placeholder="Nombre del director">
+                            </div>
+                            <div class="mb-3">
+                                <label for="actoresPrincipales" class="form-label">Actores Principales</label>
+                                <input type="text" th:field="*{actoresPrincipales}" class="form-control" placeholder="Ej: Actor 1, Actor 2, Actor 3">
+                            </div>
+                            <div class="mb-3">
+                                <label for="anio" class="form-label">Año de Lanzamiento</label>
+                                <input type="number" th:field="*{anio}" class="form-control" placeholder="Ej: 2023">
+                            </div>
+                            <div class="mb-3">
+                                <label for="personalId" class="form-label">ID del Personal (Administrador)</label>
+                                <input type="number" th:field="*{personalId}" class="form-control" placeholder="ID del personal que sube la película" required>
+                            </div>
+
+                            <button type="submit" class="btn btn-success w-100">Subir Película</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-dark text-white py-3 mt-4">
+        <div class="container">
+            <ul class="nav justify-content-center border-bottom pb-3 mb-3">
+                <li class="nav-item"><a href="" class="nav-link px-2 link-light">Página Principal</a></li>
+                <li class="nav-item"><a href="" class="nav-link px-2 link-light">Acción</a></li>
+                <li class="nav-item"><a href="" class="nav-link px-2 link-light">Aventura</a></li>
+                <li class="nav-item"><a href="" class="nav-link px-2 link-light">Ciencia Ficción</a></li>
+                <li class="nav-item"><a href="" class="nav-link px-2 link-light">Comedia</a></li>
+                <li class="nav-item"><a href="" class="nav-link px-2 link-light">Drama</a></li>
+            </ul>
+            <p class="text-center">&copy; 2025 Catálogo de Películas</p>
+        </div>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDxyJxEd7v4AuFUYOub+31z7g=="
+        crossorigin="anonymous"></script>
+    <script>
+        document.getElementById("fechaHora").innerText = new Date().toLocaleString();
+    </script>
+</body>
+
+</html>

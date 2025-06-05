@@ -1,0 +1,121 @@
+.user-photo {
+    width: 50px;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.user-menu {
+    display: none;
+    position: absolute;
+    background: white;
+    border: 1px solid #ccc;
+    padding: 5px;
+    right: 10px;
+    top: 60px;
+}
+
+.categoria {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 200px;
+    /* Altura fija responsiva visualmente */
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    overflow: hidden;
+    transition: transform 0.3s ease;
+}
+
+.categoria-img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    display: block;
+}
+
+/* Hover con animación y estilo */
+.categoria:hover {
+    animation: encogerYColor 2s steps(5) forwards;
+    transform: scale(0.95);
+}
+
+@keyframes encogerYColor {
+    0% {
+        background-color: #ffd1dc;
+    }
+
+    20% {
+        background-color: #ffe4b3;
+    }
+
+    40% {
+        background-color: #fffac8;
+    }
+
+    60% {
+        background-color: #d1ffd6;
+    }
+
+    80% {
+        background-color: #cce5ff;
+    }
+
+    100% {
+        background-color: #e4ccff;
+    }
+}
+
+.login-container {
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.movie-card {
+    border: none;
+    background-color: transparent;
+    transition: transform 0.2s ease-in-out;
+    cursor: pointer;
+}
+
+.movie-card:hover {
+    transform: scale(1.03);
+}
+
+.movie-card img {
+    width: 100%;
+    height: 350px;
+    object-fit: cover;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.movie-card .card-body {
+    padding: 10px 0 0 0;
+    text-align: center;
+}
+
+.movie-card .card-title {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #f8f9fa;
+    margin-bottom: 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.movies-section {
+    background-color: #343a40;
+    padding: 30px 0;
+    border-radius: 10px;
+    margin-top: 20px;
+}
+
+.section-title {
+    color: #ffffff;
+    margin-bottom: 30px;
+    font-size: 2.5em;
+    font-weight: bold;
+}
