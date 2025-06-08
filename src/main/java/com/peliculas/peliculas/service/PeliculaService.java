@@ -1,3 +1,4 @@
+// src/main/java/com/peliculas/peliculas/service/PeliculaService.java
 package com.peliculas.peliculas.service;
 
 import java.io.IOException;
@@ -5,12 +6,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.peliculas.peliculas.model.Pelicula;
+import com.peliculas.peliculas.model.Pelicula; // Importa Optional
 import com.peliculas.peliculas.repository.PeliculaRepository;
 
 @Service
@@ -59,5 +61,9 @@ public class PeliculaService {
 
     public List<Pelicula> listarPeliculasPorGenero(String genero) {
         return peliculaRepository.findByGenero(genero);
+    }
+
+    public Optional<Pelicula> findById(Long id) {
+        return peliculaRepository.findById(id);
     }
 }

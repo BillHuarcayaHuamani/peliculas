@@ -26,11 +26,8 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(authorize -> authorize
-                // Rutas públicas (accesibles sin autenticación)
-                .requestMatchers("/", "/registro", "/login", "/css/**", "/js/**", "/imagenes/**", "/uploads/**", "/peliculas/nueva", "/peliculas").permitAll()
-                // Rutas específicas de categorías que quieres que sean públicas
-                .requestMatchers("/accion", "/aventura", "/ciencia", "/comedia", "/drama").permitAll()
-                // Cualquier otra solicitud requiere autenticación
+                .requestMatchers("/", "/registro", "/login", "/css/**", "/js/**", "/imagenes/**", "/uploads/**", "/pelicula/{id}").permitAll() 
+                .requestMatchers("/api/peliculas/{peliculaId}/progreso").authenticated()
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form

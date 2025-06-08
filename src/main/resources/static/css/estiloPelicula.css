@@ -1,0 +1,53 @@
+body {
+    background-color: #222;
+    color: #eee;
+}
+
+.container {
+    background-color: #333;
+    border-radius: 10px;
+    padding: 30px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+}
+
+.video-container {
+    position: relative;
+    padding-bottom: 56.25%;
+    height: 0;
+    overflow: hidden;
+    background-color: #000;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.video-container video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.movie-info h1 {
+    color: #fff;
+    font-size: 2.5em;
+    margin-bottom: 15px;
+}
+
+.movie-info p {
+    font-size: 1.1em;
+    line-height: 1.6;
+    margin-bottom: 10px;
+}
+
+.movie-info .detail-label {
+    font-weight: bold;
+    color: #bbb;
+}
+
+.info-block {
+    background-color: #444;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pelicula.titulo}">Detalle de Película</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7" crossorigin="anonymous">
+    <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" th:href="@{/css/estiloIndex.css}">
+    <link rel="stylesheet" th:href="@{/css/estiloPelicula.css}">
+</head>
+
+<body>
+    <header class="bg-dark text-white py-3">
+        <nav class="navbar navbar-expand-lg navbar-dark">
+            <div class="container">
+                <div id="fechaHora" class="me-3"></div>
+
+                <a class="navbar-brand" th:href="@{/}">WIKIMovies</a>
+
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto align-items-center">
+                        <li class="nav-item"><a class="nav-link" th:href="@{/}">Página Principal</a></li>
+                        <li class="nav-item"><a class="nav-link" th:href="@{/accion}">Acción</a></li>
+                        <li class="nav-item"><a class="nav-link" th:href="@{/aventura}">Aventura</a></li>
+                        <li class="nav-item"><a class="nav-link" th:href="@{/ciencia}">Ciencia Ficción</a></li>
+                        <li class="nav-item"><a class="nav-link" th:href="@{/comedia}">Comedia</a></li>
+                        <li class="nav-item"><a class="nav-link" th:href="@{/drama}">Drama</a></li>
+
+                        <!-- Usuario logueado -->
+                        <li class="nav-item dropdown" th:if="${usuario != null}">
+                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button"
+                                id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <img th:src="@{${usuario.foto} ?: '/assets/img/PersonaLogin.png'}"
+                                    class="rounded-circle me-2" alt="Usuario" width="32" height="32">
+                                <span th:text="${usuario.nombres}">Usuario</span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                <li><a class="dropdown-item" th:href="@{/logout}">Cerrar sesión</a></li>
+                            </ul>
+                        </li>
+
+                        <!-- Usuario no logueado -->
+                        <li class="nav-item" th:if="${usuario == null}">
+                            <a class="nav-link" href="/login">Iniciar Sesión</a>
+                        </li>
+                        <li class="nav-item" th:if="${usuario == null}">
+                            <a class="nav-link" href="/registro">Registrarse</a>
+                        </li>
+
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container my-5">
+        <h1 class="text-center mb-4" th:text="${pelicula.titulo}">Título de la Película</h1>
+
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="video-container shadow-lg">
+                    <video id="moviePlayer" controls preload="metadata">
+                        <source th:src="@{${pelicula.video}}" type="video/mp4">
+                        Tu navegador no soporta la etiqueta de video.
+                    </video>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-lg-12">
+                <div class="movie-info">
+                    <div class="info-block">
+                        <p><span class="detail-label">Descripción:</span> <span
+                                th:text="${pelicula.descripcion}"></span></p>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-block">
+                                <p><span class="detail-label">Género:</span> <span th:text="${pelicula.genero}"></span>
+                                </p>
+                                <p><span class="detail-label">Director:</span> <span
+                                        th:text="${pelicula.director}"></span></p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-block">
+                                <p><span class="detail-label">Actores Principales:</span> <span
+                                        th:text="${pelicula.actoresPrincipales}"></span></p>
+                                <p><span class="detail-label">Año:</span> <span th:text="${pelicula.anio}"></span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-dark text-white py-3 mt-4">
+        <div class="container">
+            <ul class="nav justify-content-center border-bottom pb-3 mb-3">
+                <li class="nav-item"><a href="" class="nav-link px-2 link-light">Página Principal</a></li>
+                <li class="nav-item"><a href="" class="nav-link px-2 link-light">Acción</a></li>
+                <li class="nav-item"><a href="" class="nav-link px-2 link-light">Aventura</a></li>
+                <li class="nav-item"><a href="" class="nav-link px-2 link-light">Ciencia Ficción</a></li>
+                <li class="nav-item"><a href="" class="nav-link px-2 link-light">Comedia</a></li>
+                <li class="nav-item"><a href="" class="nav-link px-2 link-light">Drama</a></li>
+            </ul>
+            <p class="text-center">&copy; 2025 Catálogo de Películas</p>
+        </div>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDxyJxEd7v4AuFUYOub+31z7g=="
+        crossorigin="anonymous"></script>
+    <script th:src="@{/js/codigo.js}"></script>
+</body>
+
+</html>
