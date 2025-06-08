@@ -39,8 +39,8 @@ public class PeliculaController {
     private final UsuarioRepository usuarioRepository;
 
     public PeliculaController(PeliculaService peliculaService,
-                              ProgresoVisualizacionService progresoVisualizacionService,
-                              UsuarioRepository usuarioRepository) {
+            ProgresoVisualizacionService progresoVisualizacionService,
+            UsuarioRepository usuarioRepository) {
         this.peliculaService = peliculaService;
         this.progresoVisualizacionService = progresoVisualizacionService;
         this.usuarioRepository = usuarioRepository;
@@ -51,7 +51,8 @@ public class PeliculaController {
         model.addAttribute("pelicula", new Pelicula());
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated() &&
-            !(authentication.getPrincipal() instanceof String && authentication.getPrincipal().equals("anonymousUser"))) {
+                !(authentication.getPrincipal() instanceof String
+                        && authentication.getPrincipal().equals("anonymousUser"))) {
             String email = authentication.getName();
             Optional<Usuario> optionalUsuario = usuarioRepository.findByEmail(email);
             if (optionalUsuario.isPresent()) {
@@ -63,19 +64,18 @@ public class PeliculaController {
 
     @PostMapping("/peliculas")
     public String guardarPelicula(@ModelAttribute Pelicula pelicula,
-                                  @RequestParam(value = "portadaFile", required = false) MultipartFile portadaFile,
-                                  @RequestParam(value = "videoFile", required = false) MultipartFile videoFile,
-                                  RedirectAttributes redirectAttributes,
-                                  @AuthenticationPrincipal UserDetails currentUser) { 
+            @RequestParam(value = "portadaFile", required = false) MultipartFile portadaFile,
+            @RequestParam(value = "videoFile", required = false) MultipartFile videoFile,
+            RedirectAttributes redirectAttributes,
+            @AuthenticationPrincipal UserDetails currentUser) {
         try {
             if (currentUser != null && !currentUser.getUsername().equals("anonymousUser")) {
                 usuarioRepository.findByEmail(currentUser.getUsername()).ifPresent(user -> {
-                    pelicula.setPersonalId(user.getId()); 
+                    pelicula.setPersonalId(user.getId());
                 });
             } else {
                 throw new IllegalStateException("Solo el personal autenticado puede subir películas.");
             }
-
 
             peliculaService.guardarPelicula(pelicula, portadaFile, videoFile);
             redirectAttributes.addFlashAttribute("mensaje", "¡Película guardada exitosamente!");
@@ -86,27 +86,34 @@ public class PeliculaController {
             return "redirect:/peliculas/nueva";
         } catch (IOException e) {
             logger.error("Error al subir archivos (portada/video): {}", e.getMessage());
-            redirectAttributes.addFlashAttribute("error", "Error al subir los archivos (portada/video). Inténtalo de nuevo.");
+            redirectAttributes.addFlashAttribute("error",
+                    "Error al subir los archivos (portada/video). Inténtalo de nuevo.");
             return "redirect:/peliculas/nueva";
-        } catch (IllegalStateException e) { 
-             logger.error("Error de permisos al guardar película: {}", e.getMessage());
-             redirectAttributes.addFlashAttribute("error", e.getMessage());
-             return "redirect:/peliculas/nueva";
+        } catch (IllegalStateException e) {
+            logger.error("Error de permisos al guardar película: {}", e.getMessage());
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            return "redirect:/peliculas/nueva";
         } catch (Exception e) {
             logger.error("Ocurrió un error inesperado al guardar la película: {}", e.getMessage(), e);
-            redirectAttributes.addFlashAttribute("error", "Ocurrió un error inesperado al guardar la película. Por favor, inténtalo más tarde.");
+            redirectAttributes.addFlashAttribute("error",
+                    "Ocurrió un error inesperado al guardar la película. Por favor, inténtalo más tarde.");
             return "redirect:/peliculas/nueva";
         }
     }
 
-
     @GetMapping("/pelicula/{id}")
     public String mostrarDetallePelicula(@PathVariable Long id, Model model,
-                                         @AuthenticationPrincipal UserDetails currentUser) { 
+            @AuthenticationPrincipal UserDetails currentUser,
+            RedirectAttributes redirectAttributes) { 
 
-        Pelicula pelicula = peliculaService.findById(id) 
-                .orElseThrow(() -> new RuntimeException("Película no encontrada con ID: " + id)); 
+        Optional<Pelicula> optionalPelicula = peliculaService.findById(id);
 
+        if (optionalPelicula.isEmpty()) {
+            redirectAttributes.addFlashAttribute("error", "La película solicitada no fue encontrada.");
+            return "redirect:/"; 
+        }
+
+        Pelicula pelicula = optionalPelicula.get();
         model.addAttribute("pelicula", pelicula);
 
         if (currentUser != null && !currentUser.getUsername().equals("anonymousUser")) {
@@ -119,15 +126,14 @@ public class PeliculaController {
             model.addAttribute("ultimaPosicion", 0.0f);
         }
 
-        return "detallePelicula"; 
+        return "detallePelicula";
     }
 
-
     @PostMapping("/api/peliculas/{peliculaId}/progreso")
-    @ResponseBody 
+    @ResponseBody
     public Map<String, String> actualizarProgreso(@PathVariable Long peliculaId,
-                                                   @RequestBody Map<String, Float> payload, 
-                                                   @AuthenticationPrincipal UserDetails currentUser) {
+            @RequestBody Map<String, Float> payload,
+            @AuthenticationPrincipal UserDetails currentUser) {
         if (currentUser == null || currentUser.getUsername().equals("anonymousUser")) {
             return Map.of("status", "error", "message", "Usuario no autenticado");
         }
@@ -148,7 +154,8 @@ public class PeliculaController {
             progresoVisualizacionService.guardarOActualizarProgreso(usuarioId, peliculaId, posicion);
             return Map.of("status", "success", "message", "Progreso guardado");
         } catch (Exception e) {
-            logger.error("Error al guardar progreso para usuario {} pelicula {}: {}", usuarioId, peliculaId, e.getMessage(), e);
+            logger.error("Error al guardar progreso para usuario {} pelicula {}: {}", usuarioId, peliculaId,
+                    e.getMessage(), e);
             return Map.of("status", "error", "message", "Error al guardar progreso: " + e.getMessage());
         }
     }
