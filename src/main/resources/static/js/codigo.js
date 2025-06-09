@@ -2,8 +2,8 @@ document.getElementById("fechaHora").innerText = new Date().toLocaleString();
 
 const videoPlayer = document.getElementById('moviePlayer');
 
-const peliculaId = /*[[${pelicula.id}]]*/ 0; 
-const ultimaPosicionGuardada = /*[[${ultimaPosicion}]]*/ 0.0; 
+const peliculaId = /*[[${jsPeliculaId}]]*/ 0;
+const ultimaPosicionGuardada = /*[[${ultimaPosicion}]]*/ 0.0;
 
 
 console.log('JS: ID de la película:', peliculaId);

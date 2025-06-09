@@ -4,11 +4,13 @@
  */
 package com.peliculas.peliculas.service;
 
-import com.peliculas.peliculas.model.Categoria;
-import com.peliculas.peliculas.repository.CategoriaRepository;
 import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import com.peliculas.peliculas.model.Categoria;
+import com.peliculas.peliculas.repository.CategoriaRepository;
 
 /**
  *

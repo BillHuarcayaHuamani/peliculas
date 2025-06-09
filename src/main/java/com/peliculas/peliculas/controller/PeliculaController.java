@@ -104,17 +104,19 @@ public class PeliculaController {
     @GetMapping("/pelicula/{id}")
     public String mostrarDetallePelicula(@PathVariable Long id, Model model,
             @AuthenticationPrincipal UserDetails currentUser,
-            RedirectAttributes redirectAttributes) { 
+            RedirectAttributes redirectAttributes) {
 
         Optional<Pelicula> optionalPelicula = peliculaService.findById(id);
 
         if (optionalPelicula.isEmpty()) {
             redirectAttributes.addFlashAttribute("error", "La película solicitada no fue encontrada.");
-            return "redirect:/"; 
+            return "redirect:/";
         }
 
         Pelicula pelicula = optionalPelicula.get();
         model.addAttribute("pelicula", pelicula);
+        // NEW: Explicitly add the ID from the path variable to the model for JS use
+        model.addAttribute("jsPeliculaId", id);
 
         if (currentUser != null && !currentUser.getUsername().equals("anonymousUser")) {
             usuarioRepository.findByEmail(currentUser.getUsername()).ifPresent(user -> {

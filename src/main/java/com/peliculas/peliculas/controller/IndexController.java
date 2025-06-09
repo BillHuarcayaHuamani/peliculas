@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.peliculas.peliculas.controller;
 
 import java.util.Arrays;
@@ -19,6 +15,7 @@ import com.peliculas.peliculas.model.Pelicula;
 import com.peliculas.peliculas.model.PeliculaInicio;
 import com.peliculas.peliculas.model.Usuario;
 import com.peliculas.peliculas.repository.CategoriaRepository;
+import com.peliculas.peliculas.repository.PersonalRepository;
 import com.peliculas.peliculas.repository.UsuarioRepository;
 import com.peliculas.peliculas.service.PeliculaService;
 
@@ -30,11 +27,14 @@ public class IndexController {
     private final CategoriaRepository categoriaRepository;
     private final UsuarioRepository usuarioRepository;
     private final PeliculaService peliculaService;
+    private final PersonalRepository personalRepository; 
 
-    public IndexController(CategoriaRepository categoriaRepository, UsuarioRepository usuarioRepository, PeliculaService peliculaService) {
+    public IndexController(CategoriaRepository categoriaRepository, UsuarioRepository usuarioRepository,
+                           PeliculaService peliculaService, PersonalRepository personalRepository) { 
         this.categoriaRepository = categoriaRepository;
         this.usuarioRepository = usuarioRepository;
         this.peliculaService = peliculaService;
+        this.personalRepository = personalRepository; 
     }
 
     @GetMapping("/")
@@ -51,15 +51,24 @@ public class IndexController {
         );
         model.addAttribute("peliculaIniciosHardcodeadas", peliculaIniciosHardcodeadas);
 
-        // Obtener el usuario autenticado de Spring Security y añadirlo al modelo
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.isAuthenticated() &&
-            !(authentication.getPrincipal() instanceof String && authentication.getPrincipal().equals("anonymousUser"))) {
+        boolean isUserAuthenticated = authentication != null && authentication.isAuthenticated() &&
+                                      !(authentication.getPrincipal() instanceof String && authentication.getPrincipal().equals("anonymousUser"));
+        
+        model.addAttribute("isPersonal", false); 
+
+        if (isUserAuthenticated) {
             String email = authentication.getName();
-            Optional<Usuario> optionalUsuario = usuarioRepository.findByEmail(email);
-            if (optionalUsuario.isPresent()) {
-                Usuario usuarioAutenticado = optionalUsuario.get();
-                model.addAttribute("usuario", usuarioAutenticado);
+            if (email != null) { 
+                Optional<Usuario> optionalUsuario = usuarioRepository.findByEmail(email);
+                if (optionalUsuario.isPresent()) {
+                    Usuario usuarioAutenticado = optionalUsuario.get();
+                    model.addAttribute("usuario", usuarioAutenticado);
+                    
+                    // Verificar si el email del usuario logueado existe en la tabla 'personal'
+                    boolean isPersonalUser = personalRepository.existsByEmail(email);
+                    model.addAttribute("isPersonal", isPersonalUser);
+                }
             }
         }
         return "index";
@@ -78,13 +87,21 @@ public class IndexController {
         model.addAttribute("generoActual", genero);
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.isAuthenticated() &&
-            !(authentication.getPrincipal() instanceof String && authentication.getPrincipal().equals("anonymousUser"))) {
+        boolean isUserAuthenticated = authentication != null && authentication.isAuthenticated() &&
+                                      !(authentication.getPrincipal() instanceof String && authentication.getPrincipal().equals("anonymousUser"));
+
+        model.addAttribute("isPersonal", false); 
+
+        if (isUserAuthenticated) {
             String email = authentication.getName();
-            Optional<Usuario> optionalUsuario = usuarioRepository.findByEmail(email);
-            if (optionalUsuario.isPresent()) {
-                Usuario usuarioAutenticado = optionalUsuario.get();
-                model.addAttribute("usuario", usuarioAutenticado);
+            if (email != null) {
+                Optional<Usuario> optionalUsuario = usuarioRepository.findByEmail(email);
+                if (optionalUsuario.isPresent()) {
+                    Usuario usuarioAutenticado = optionalUsuario.get();
+                    model.addAttribute("usuario", usuarioAutenticado);
+                    boolean isPersonalUser = personalRepository.existsByEmail(email);
+                    model.addAttribute("isPersonal", isPersonalUser);
+                }
             }
         }
         return "peliculasPorGenero";
