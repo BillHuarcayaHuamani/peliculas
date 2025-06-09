@@ -10,9 +10,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -21,7 +26,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.peliculas.peliculas.model.Personal;
 import com.peliculas.peliculas.model.Usuario;
+import com.peliculas.peliculas.repository.PersonalRepository;
 import com.peliculas.peliculas.repository.UsuarioRepository;
 
 @Service
@@ -31,10 +38,12 @@ public class UsuarioService implements UserDetailsService {
 
     private final UsuarioRepository usuarioRepository;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final PersonalRepository personalRepository;
 
-    public UsuarioService(UsuarioRepository usuarioRepository, BCryptPasswordEncoder passwordEncoder) {
+    public UsuarioService(UsuarioRepository usuarioRepository, BCryptPasswordEncoder passwordEncoder, PersonalRepository personalRepository) {
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
+        this.personalRepository = personalRepository;
         try {
             Files.createDirectories(Paths.get(UPLOAD_DIR));
         } catch (IOException e) {
@@ -43,11 +52,9 @@ public class UsuarioService implements UserDetailsService {
     }
 
     public Usuario registrar(Usuario usuario, MultipartFile fotoPerfil) throws IOException {
-        // Encripta la contraseña antes de guardarla
         String hashedPassword = passwordEncoder.encode(usuario.getPassword());
         usuario.setPassword(hashedPassword);
 
-        // Maneja la subida de la foto
         if (fotoPerfil != null && !fotoPerfil.isEmpty()) {
             String fileName = UUID.randomUUID().toString() + "_" + fotoPerfil.getOriginalFilename();
             Path filePath = Paths.get(UPLOAD_DIR + fileName);
@@ -57,7 +64,6 @@ public class UsuarioService implements UserDetailsService {
             usuario.setFoto("/assets/img/PersonaLogin.png");
         }
 
-        // Establece la fecha de registro
         if (usuario.getFechaDeRegistro() == null) {
             usuario.setFechaDeRegistro(LocalDateTime.now());
         }
@@ -69,9 +75,29 @@ public class UsuarioService implements UserDetailsService {
         Usuario usuario = usuarioRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado con email: " + email));
 
-        // Construye y retorna un objeto UserDetails de Spring Security
-        return new User(usuario.getEmail(), usuario.getPassword(), Collections.emptyList());
+        Collection<? extends GrantedAuthority> authorities = getAuthoritiesForUser(email);
+
+        return new User(usuario.getEmail(), usuario.getPassword(), authorities);
     }
+
+    private Collection<? extends GrantedAuthority> getAuthoritiesForUser(String email) {
+        List<GrantedAuthority> authorities = new ArrayList<>();
+        
+        authorities.add(new SimpleGrantedAuthority("ROLE_USER")); 
+
+        Optional<Personal> optionalPersonal = personalRepository.findByEmail(email);
+        if (optionalPersonal.isPresent()) {
+            Personal personal = optionalPersonal.get();
+            if ("administrador".equalsIgnoreCase(personal.getCargo())) {
+                authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+                authorities.add(new SimpleGrantedAuthority("ROLE_TRABAJADOR")); 
+            } else if ("trabajador".equalsIgnoreCase(personal.getCargo())) {
+                authorities.add(new SimpleGrantedAuthority("ROLE_TRABAJADOR"));
+            }
+        }
+        return authorities;
+    }
+
 
     public Usuario autenticar(String email, String rawPassword) {
         try {

@@ -45,8 +45,14 @@
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                                 <li><a class="dropdown-item" th:href="@{/logout}">Cerrar sesión</a></li>
-                                <li th:if="${isPersonal}"> 
+                                <li th:if="${isPersonal}">
                                     <a class="dropdown-item" th:href="@{/peliculas/nueva}">Subir Película</a>
+                                </li>
+                                <li th:if="${isAdmin}">
+                                    <a class="dropdown-item" th:href="@{/registro-personal}">Registrar Personal</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" th:href="@{/mis-favoritos}">Mis Favoritos</a>
                                 </li>
                             </ul>
                         </li>

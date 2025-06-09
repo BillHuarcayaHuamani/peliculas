@@ -1,6 +1,8 @@
 package com.peliculas.peliculas.controller;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List; 
 import java.util.Map;
 import java.util.Optional;
 
@@ -24,8 +26,11 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.peliculas.peliculas.model.Pelicula;
+import com.peliculas.peliculas.model.Personal;
 import com.peliculas.peliculas.model.Usuario;
+import com.peliculas.peliculas.repository.PersonalRepository; 
 import com.peliculas.peliculas.repository.UsuarioRepository;
+import com.peliculas.peliculas.service.FavoritosService; 
 import com.peliculas.peliculas.service.PeliculaService;
 import com.peliculas.peliculas.service.ProgresoVisualizacionService;
 
@@ -37,13 +42,19 @@ public class PeliculaController {
     private final PeliculaService peliculaService;
     private final ProgresoVisualizacionService progresoVisualizacionService;
     private final UsuarioRepository usuarioRepository;
+    private final PersonalRepository personalRepository; 
+    private final FavoritosService favoritosService;
 
     public PeliculaController(PeliculaService peliculaService,
             ProgresoVisualizacionService progresoVisualizacionService,
-            UsuarioRepository usuarioRepository) {
+            UsuarioRepository usuarioRepository,
+            PersonalRepository personalRepository,
+            FavoritosService favoritosService) { 
         this.peliculaService = peliculaService;
         this.progresoVisualizacionService = progresoVisualizacionService;
         this.usuarioRepository = usuarioRepository;
+        this.personalRepository = personalRepository; 
+        this.favoritosService = favoritosService; 
     }
 
     @GetMapping("/peliculas/nueva")
@@ -51,14 +62,24 @@ public class PeliculaController {
         model.addAttribute("pelicula", new Pelicula());
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated() &&
-                !(authentication.getPrincipal() instanceof String
-                        && authentication.getPrincipal().equals("anonymousUser"))) {
-            String email = authentication.getName();
+            authentication.getPrincipal() instanceof UserDetails) { 
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            String email = userDetails.getUsername();
             Optional<Usuario> optionalUsuario = usuarioRepository.findByEmail(email);
             if (optionalUsuario.isPresent()) {
                 model.addAttribute("usuario", optionalUsuario.get());
+                boolean isAdmin = userDetails.getAuthorities().stream()
+                                     .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+                model.addAttribute("isAdmin", isAdmin); 
+                boolean isPersonal = userDetails.getAuthorities().stream()
+                                            .anyMatch(a -> a.getAuthority().equals("ROLE_TRABAJADOR") || a.getAuthority().equals("ROLE_ADMIN"));
+                model.addAttribute("isPersonal", isPersonal);
             }
         }
+        
+        List<String> generosFijos = Arrays.asList("Acción", "Aventura", "Ciencia Ficción", "Comedia", "Drama");
+        model.addAttribute("generosFijos", generosFijos);
+
         return "nuevaPelicula";
     }
 
@@ -69,12 +90,24 @@ public class PeliculaController {
             RedirectAttributes redirectAttributes,
             @AuthenticationPrincipal UserDetails currentUser) {
         try {
-            if (currentUser != null && !currentUser.getUsername().equals("anonymousUser")) {
-                usuarioRepository.findByEmail(currentUser.getUsername()).ifPresent(user -> {
-                    pelicula.setPersonalId(user.getId());
-                });
-            } else {
+            if (currentUser == null || currentUser.getUsername().equals("anonymousUser")) {
                 throw new IllegalStateException("Solo el personal autenticado puede subir películas.");
+            }
+
+            boolean hasWorkerOrAdminRole = currentUser.getAuthorities().stream()
+                                        .anyMatch(a -> a.getAuthority().equals("ROLE_TRABAJADOR") || a.getAuthority().equals("ROLE_ADMIN"));
+            
+            if (!hasWorkerOrAdminRole) {
+                throw new IllegalStateException("Acceso denegado. Solo el personal (trabajadores o administradores) puede subir películas.");
+            }
+
+            String email = currentUser.getUsername();
+            Optional<Personal> optionalPersonal = personalRepository.findByEmail(email); 
+
+            if (optionalPersonal.isPresent()) {
+                pelicula.setPersonalId(optionalPersonal.get().getId()); 
+            } else {
+                throw new IllegalStateException("No se pudo encontrar la información del personal para asignar la película.");
             }
 
             peliculaService.guardarPelicula(pelicula, portadaFile, videoFile);
@@ -90,7 +123,7 @@ public class PeliculaController {
                     "Error al subir los archivos (portada/video). Inténtalo de nuevo.");
             return "redirect:/peliculas/nueva";
         } catch (IllegalStateException e) {
-            logger.error("Error de permisos al guardar película: {}", e.getMessage());
+            logger.error("Error de permisos o usuario no personal al guardar película: {}", e.getMessage());
             redirectAttributes.addFlashAttribute("error", e.getMessage());
             return "redirect:/peliculas/nueva";
         } catch (Exception e) {
@@ -115,7 +148,6 @@ public class PeliculaController {
 
         Pelicula pelicula = optionalPelicula.get();
         model.addAttribute("pelicula", pelicula);
-        // NEW: Explicitly add the ID from the path variable to the model for JS use
         model.addAttribute("jsPeliculaId", id);
 
         if (currentUser != null && !currentUser.getUsername().equals("anonymousUser")) {
@@ -123,9 +155,21 @@ public class PeliculaController {
                 model.addAttribute("usuario", user);
                 Float ultimaPosicion = progresoVisualizacionService.obtenerUltimaPosicion(user.getId(), id);
                 model.addAttribute("ultimaPosicion", ultimaPosicion);
+
+                boolean isFavorited = favoritosService.isFavorited(user.getId(), id);
+                model.addAttribute("isFavorited", isFavorited); 
             });
+            boolean isPersonal = currentUser.getAuthorities().stream()
+                                        .anyMatch(a -> a.getAuthority().equals("ROLE_TRABAJADOR") || a.getAuthority().equals("ROLE_ADMIN"));
+            model.addAttribute("isPersonal", isPersonal);
+            boolean isAdmin = currentUser.getAuthorities().stream()
+                                     .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+            model.addAttribute("isAdmin", isAdmin);
         } else {
             model.addAttribute("ultimaPosicion", 0.0f);
+            model.addAttribute("isFavorited", false); 
+            model.addAttribute("isPersonal", false);
+            model.addAttribute("isAdmin", false);
         }
 
         return "detallePelicula";
@@ -159,6 +203,28 @@ public class PeliculaController {
             logger.error("Error al guardar progreso para usuario {} pelicula {}: {}", usuarioId, peliculaId,
                     e.getMessage(), e);
             return Map.of("status", "error", "message", "Error al guardar progreso: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/api/peliculas/{peliculaId}/toggle-favorito")
+    @ResponseBody
+    public Map<String, Object> toggleFavorito(@PathVariable Long peliculaId, @AuthenticationPrincipal UserDetails currentUser) {
+        if (currentUser == null || currentUser.getUsername().equals("anonymousUser")) {
+            return Map.of("status", "error", "message", "Usuario no autenticado", "isFavorited", false);
+        }
+
+        Optional<Usuario> optionalUsuario = usuarioRepository.findByEmail(currentUser.getUsername());
+        if (optionalUsuario.isEmpty()) {
+            return Map.of("status", "error", "message", "Usuario no encontrado en la base de datos", "isFavorited", false);
+        }
+        Long usuarioId = optionalUsuario.get().getId();
+
+        try {
+            boolean newFavoriteStatus = favoritosService.toggleFavorite(usuarioId, peliculaId);
+            return Map.of("status", "success", "message", "Estado de favorito actualizado", "isFavorited", newFavoriteStatus);
+        } catch (Exception e) {
+            logger.error("Error al alternar favorito para usuario {} pelicula {}: {}", usuarioId, peliculaId, e.getMessage(), e);
+            return Map.of("status", "error", "message", "Error al alternar favorito: " + e.getMessage(), "isFavorited", false);
         }
     }
 }

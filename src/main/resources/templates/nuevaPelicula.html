@@ -35,7 +35,6 @@
                         <li class="nav-item"><a class="nav-link" th:href="@{/comedia}">Comedia</a></li>
                         <li class="nav-item"><a class="nav-link" th:href="@{/drama}">Drama</a></li>
 
-                        <!-- Usuario logueado -->
                         <li class="nav-item dropdown" th:if="${usuario != null}">
                             <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button"
                                 id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
@@ -45,10 +44,18 @@
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                                 <li><a class="dropdown-item" th:href="@{/logout}">Cerrar sesión</a></li>
+                                <li th:if="${isPersonal}">
+                                    <a class="dropdown-item" th:href="@{/peliculas/nueva}">Subir Película</a>
+                                </li>
+                                <li th:if="${isAdmin}">
+                                    <a class="dropdown-item" th:href="@{/registro-personal}">Registrar Personal</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" th:href="@{/mis-favoritos}">Mis Favoritos</a>
+                                </li>
                             </ul>
                         </li>
 
-                        <!-- Usuario no logueado -->
                         <li class="nav-item" th:if="${usuario == null}">
                             <a class="nav-link" href="/login">Iniciar Sesión</a>
                         </li>
@@ -70,46 +77,54 @@
                         <h4 class="mb-0">Subir Nueva Película</h4>
                     </div>
                     <div class="card-body">
-                        <form th:action="@{/peliculas}" th:object="${pelicula}" method="post" enctype="multipart/form-data">
+                        <form th:action="@{/peliculas}" th:object="${pelicula}" method="post"
+                            enctype="multipart/form-data">
 
                             <p th:if="${mensaje}" class="alert alert-success mt-3" th:text="${mensaje}"></p>
                             <p th:if="${error}" class="alert alert-danger mt-3" th:text="${error}"></p>
 
                             <div class="mb-3">
                                 <label for="titulo" class="form-label">Título</label>
-                                <input type="text" th:field="*{titulo}" class="form-control" placeholder="Título de la película" required>
+                                <input type="text" th:field="*{titulo}" class="form-control"
+                                    placeholder="Título de la película" required>
                             </div>
                             <div class="mb-3">
                                 <label for="descripcion" class="form-label">Descripción</label>
-                                <textarea th:field="*{descripcion}" class="form-control" rows="3" placeholder="Breve descripción de la película"></textarea>
+                                <textarea th:field="*{descripcion}" class="form-control" rows="3"
+                                    placeholder="Breve descripción de la película"></textarea>
                             </div>
                             <div class="mb-3">
                                 <label for="portadaFile" class="form-label">Imagen de Portada</label>
-                                <input type="file" id="portadaFile" name="portadaFile" class="form-control" accept="image/*" required>
+                                <input type="file" id="portadaFile" name="portadaFile" class="form-control"
+                                    accept="image/*" required>
                             </div>
                             <div class="mb-3">
                                 <label for="videoFile" class="form-label">Archivo de Video (Trailer/Clip)</label>
-                                <input type="file" id="videoFile" name="videoFile" class="form-control" accept="video/*">
+                                <input type="file" id="videoFile" name="videoFile" class="form-control"
+                                    accept="video/*">
                             </div>
+
                             <div class="mb-3">
                                 <label for="genero" class="form-label">Género</label>
-                                <input type="text" th:field="*{genero}" class="form-control" placeholder="Ej: Acción, Drama, Comedia">
+                                <select th:field="*{genero}" class="form-control" id="genero" required>
+                                    <option value="">Seleccione un género</option>
+                                    <option th:each="gen : ${generosFijos}" th:value="${gen}" th:text="${gen}"></option>
+                                </select>
                             </div>
+
                             <div class="mb-3">
                                 <label for="director" class="form-label">Director</label>
-                                <input type="text" th:field="*{director}" class="form-control" placeholder="Nombre del director">
+                                <input type="text" th:field="*{director}" class="form-control"
+                                    placeholder="Nombre del director">
                             </div>
                             <div class="mb-3">
                                 <label for="actoresPrincipales" class="form-label">Actores Principales</label>
-                                <input type="text" th:field="*{actoresPrincipales}" class="form-control" placeholder="Ej: Actor 1, Actor 2, Actor 3">
+                                <input type="text" th:field="*{actoresPrincipales}" class="form-control"
+                                    placeholder="Ej: Actor 1, Actor 2, Actor 3">
                             </div>
                             <div class="mb-3">
                                 <label for="anio" class="form-label">Año de Lanzamiento</label>
                                 <input type="number" th:field="*{anio}" class="form-control" placeholder="Ej: 2023">
-                            </div>
-                            <div class="mb-3">
-                                <label for="personalId" class="form-label">ID del Personal (Administrador)</label>
-                                <input type="number" th:field="*{personalId}" class="form-control" placeholder="ID del personal que sube la película" required>
                             </div>
 
                             <button type="submit" class="btn btn-success w-100">Subir Película</button>

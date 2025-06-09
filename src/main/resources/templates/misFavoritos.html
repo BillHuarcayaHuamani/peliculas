@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Películas Favoritas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        xintegrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        xintegrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="css/estiloIndex.css">
+    <style>
+        body {
+            background-color: #222;
+            color: #eee;
+        }
+        .container.main-content {
+            background-color: #333;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+            margin-top: 50px;
+            margin-bottom: 50px;
+        }
+        .section-title {
+            color: #ffffff;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            font-weight: bold;
+            text-align: center;
+        }
+        .movie-card {
+            border: none;
+            background-color: transparent;
+            transition: transform 0.2s ease-in-out;
+            cursor: pointer;
+        }
+        .movie-card:hover {
+            transform: scale(1.03);
+        }
+        .movie-card img {
+            width: 100%;
+            height: 350px;
+            object-fit: cover;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        .movie-card .card-body {
+            padding: 10px 0 0 0;
+            text-align: center;
+        }
+        .movie-card .card-title {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #f8f9fa;
+            margin-bottom: 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="bg-dark text-white py-3">
+        <nav class="navbar navbar-expand-lg navbar-dark">
+            <div class="container">
+                <div id="fechaHora" class="me-3"></div>
+
+                <a class="navbar-brand" th:href="@{/}">WIKIMovies</a>
+
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto align-items-center">
+                        <li class="nav-item"><a class="nav-link" th:href="@{/}">Página Principal</a></li>
+                        <li class="nav-item"><a class="nav-link" th:href="@{/accion}">Acción</a></li>
+                        <li class="nav-item"><a class="nav-link" th:href="@{/aventura}">Aventura</a></li>
+                        <li class="nav-item"><a class="nav-link" th:href="@{/ciencia}">Ciencia Ficción</a></li>
+                        <li class="nav-item"><a class="nav-link" th:href="@{/comedia}">Comedia</a></li>
+                        <li class="nav-item"><a class="nav-link" th:href="@{/drama}">Drama</a></li>
+
+                        <li class="nav-item dropdown" th:if="${usuario != null}">
+                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button"
+                                id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <img th:src="@{${usuario.foto} ?: '/assets/img/PersonaLogin.png'}"
+                                    class="rounded-circle me-2" alt="Usuario" width="32" height="32">
+                                <span th:text="${usuario.nombres}">Usuario</span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                <li><a class="dropdown-item" th:href="@{/logout}">Cerrar sesión</a></li>
+                                <li th:if="${isPersonal}"> 
+                                    <a class="dropdown-item" th:href="@{/peliculas/nueva}">Subir Película</a>
+                                </li>
+                                <li th:if="${isAdmin}"> 
+                                    <a class="dropdown-item" th:href="@{/registro-personal}">Registrar Personal</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" th:href="@{/mis-favoritos}">Mis Favoritos</a>
+                                </li>
+                            </ul>
+                        </li>
+
+                        <li class="nav-item" th:if="${usuario == null}">
+                            <a class="nav-link" href="/login">Iniciar Sesión</a>
+                        </li>
+                        <li class="nav-item" th:if="${usuario == null}">
+                            <a class="nav-link" href="/registro">Registrarse</a>
+                        </li>
+
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container main-content">
+        <h2 class="section-title">Mis Películas Favoritas</h2>
+
+        <div class="text-center my-4" th:if="${isPersonal}">
+            <a th:href="@{/favoritos/export-excel}" class="btn btn-success">
+                Exportar Favoritos a Excel
+            </a>
+        </div>
+        
+        <div class="row justify-content-center">
+            <div class="col-6 col-sm-4 col-md-3 col-lg-2 mb-4" th:each="pelicula : ${peliculasFavoritas}">
+                <div class="card movie-card">
+                    <a th:href="@{'/pelicula/' + ${pelicula.id}}"> 
+                        <img th:src="@{${pelicula.portada}}" class="card-img-top" th:alt="${pelicula.titulo}" />
+                        <div class="card-body">
+                            <h5 class="card-title" th:text="${pelicula.titulo}">Título de la Película</h5>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            <div th:if="${peliculasFavoritas.isEmpty()}" class="col-12 text-center text-white">
+                <p>No tienes películas favoritas aún.</p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-dark text-white py-3 mt-4">
+        <div class="container">
+            <ul class="nav justify-content-center border-bottom pb-3 mb-3">
+                <li class="nav-item"><a href="" class="nav-link px-2 link-light">Página Principal</a></li>
+                <li class="nav-item"><a href="" class="nav-link px-2 link-light">Acción</a></li>
+                <li class="nav-item"><a href="" class="nav-link px-2 link-light">Aventura</a></li>
+                <li class="nav-item"><a href="" class="nav-link px-2 link-light">Ciencia Ficción</a></li>
+                <li class="nav-item"><a href="" class="nav-link px-2 link-light">Comedia</a></li>
+                <li class="nav-item"><a href="" class="nav-link px-2 link-light">Drama</a></li>
+            </ul>
+            <p class="text-center">&copy; 2025 Catálogo de Películas</p>
+        </div>
+    </footer>
+    <script>
+        document.getElementById("fechaHora").innerText = new Date().toLocaleString();
+    </script>
+</body>
+
+</html>

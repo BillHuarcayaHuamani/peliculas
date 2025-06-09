@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails; 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,7 +16,6 @@ import com.peliculas.peliculas.model.Pelicula;
 import com.peliculas.peliculas.model.PeliculaInicio;
 import com.peliculas.peliculas.model.Usuario;
 import com.peliculas.peliculas.repository.CategoriaRepository;
-import com.peliculas.peliculas.repository.PersonalRepository;
 import com.peliculas.peliculas.repository.UsuarioRepository;
 import com.peliculas.peliculas.service.PeliculaService;
 
@@ -27,14 +27,12 @@ public class IndexController {
     private final CategoriaRepository categoriaRepository;
     private final UsuarioRepository usuarioRepository;
     private final PeliculaService peliculaService;
-    private final PersonalRepository personalRepository; 
 
     public IndexController(CategoriaRepository categoriaRepository, UsuarioRepository usuarioRepository,
-                           PeliculaService peliculaService, PersonalRepository personalRepository) { 
+                           PeliculaService peliculaService) { 
         this.categoriaRepository = categoriaRepository;
         this.usuarioRepository = usuarioRepository;
         this.peliculaService = peliculaService;
-        this.personalRepository = personalRepository; 
     }
 
     @GetMapping("/")
@@ -52,24 +50,31 @@ public class IndexController {
         model.addAttribute("peliculaIniciosHardcodeadas", peliculaIniciosHardcodeadas);
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        boolean isUserAuthenticated = authentication != null && authentication.isAuthenticated() &&
-                                      !(authentication.getPrincipal() instanceof String && authentication.getPrincipal().equals("anonymousUser"));
         
         model.addAttribute("isPersonal", false); 
+        model.addAttribute("isAdmin", false); 
 
-        if (isUserAuthenticated) {
-            String email = authentication.getName();
-            if (email != null) { 
-                Optional<Usuario> optionalUsuario = usuarioRepository.findByEmail(email);
-                if (optionalUsuario.isPresent()) {
-                    Usuario usuarioAutenticado = optionalUsuario.get();
-                    model.addAttribute("usuario", usuarioAutenticado);
-                    
-                    // Verificar si el email del usuario logueado existe en la tabla 'personal'
-                    boolean isPersonalUser = personalRepository.existsByEmail(email);
-                    model.addAttribute("isPersonal", isPersonalUser);
-                }
+        if (authentication != null && authentication.isAuthenticated() &&
+            authentication.getPrincipal() instanceof UserDetails) { 
+            
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            String email = userDetails.getUsername(); 
+            
+            Optional<Usuario> optionalUsuario = usuarioRepository.findByEmail(email);
+            if (optionalUsuario.isPresent()) {
+                Usuario usuarioAutenticado = optionalUsuario.get();
+                model.addAttribute("usuario", usuarioAutenticado);
+                
+                boolean isPersonalUser = userDetails.getAuthorities().stream()
+                                            .anyMatch(a -> a.getAuthority().equals("ROLE_TRABAJADOR") || a.getAuthority().equals("ROLE_ADMIN"));
+                model.addAttribute("isPersonal", isPersonalUser);
+
+                boolean isAdminUser = userDetails.getAuthorities().stream()
+                                            .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+                model.addAttribute("isAdmin", isAdminUser);
             }
+        } else if (authentication != null && authentication.isAuthenticated() && 
+                   authentication.getPrincipal() instanceof String && authentication.getPrincipal().equals("anonymousUser")) {
         }
         return "index";
     }
@@ -87,22 +92,32 @@ public class IndexController {
         model.addAttribute("generoActual", genero);
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        boolean isUserAuthenticated = authentication != null && authentication.isAuthenticated() &&
-                                      !(authentication.getPrincipal() instanceof String && authentication.getPrincipal().equals("anonymousUser"));
-
+        
+        // Por defecto
         model.addAttribute("isPersonal", false); 
+        model.addAttribute("isAdmin", false); 
 
-        if (isUserAuthenticated) {
-            String email = authentication.getName();
-            if (email != null) {
-                Optional<Usuario> optionalUsuario = usuarioRepository.findByEmail(email);
-                if (optionalUsuario.isPresent()) {
-                    Usuario usuarioAutenticado = optionalUsuario.get();
-                    model.addAttribute("usuario", usuarioAutenticado);
-                    boolean isPersonalUser = personalRepository.existsByEmail(email);
-                    model.addAttribute("isPersonal", isPersonalUser);
-                }
+        if (authentication != null && authentication.isAuthenticated() &&
+            authentication.getPrincipal() instanceof UserDetails) { 
+            
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            String email = userDetails.getUsername(); 
+            
+            Optional<Usuario> optionalUsuario = usuarioRepository.findByEmail(email);
+            if (optionalUsuario.isPresent()) {
+                Usuario usuarioAutenticado = optionalUsuario.get();
+                model.addAttribute("usuario", usuarioAutenticado);
+                
+                boolean isPersonalUser = userDetails.getAuthorities().stream()
+                                            .anyMatch(a -> a.getAuthority().equals("ROLE_TRABAJADOR") || a.getAuthority().equals("ROLE_ADMIN"));
+                model.addAttribute("isPersonal", isPersonalUser);
+
+                boolean isAdminUser = userDetails.getAuthorities().stream()
+                                            .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+                model.addAttribute("isAdmin", isAdminUser);
             }
+        } else if (authentication != null && authentication.isAuthenticated() && 
+                   authentication.getPrincipal() instanceof String && authentication.getPrincipal().equals("anonymousUser")) {
         }
         return "peliculasPorGenero";
     }

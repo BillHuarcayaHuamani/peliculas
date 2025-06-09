@@ -26,8 +26,20 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/", "/registro", "/login", "/css/**", "/js/**", "/imagenes/**", "/uploads/**", "/pelicula/{id}", "/accion", "/aventura", "/ciencia", "/comedia", "/drama").permitAll() 
+                .requestMatchers("/", "/registro", "/login", "/css/**", "/js/**", "/imagenes/**", "/uploads/**", 
+                                 "/pelicula/{id}", "/accion", "/aventura", "/ciencia", "/comedia", "/drama").permitAll() 
+                
+                .requestMatchers("/registro-personal").hasRole("ADMIN")
+                .requestMatchers("/peliculas/nueva").hasAnyRole("TRABAJADOR", "ADMIN")
+                .requestMatchers(org.springframework.http.HttpMethod.POST, "/peliculas").hasAnyRole("TRABAJADOR", "ADMIN")
+                
+                .requestMatchers("/mis-favoritos").authenticated()
+                .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/peliculas/{peliculaId}/toggle-favorito").authenticated()
+
+                .requestMatchers("/favoritos/export-excel").hasAnyRole("TRABAJADOR", "ADMIN")
+                
                 .requestMatchers("/api/peliculas/{peliculaId}/progreso").authenticated()
+                
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form
@@ -43,7 +55,7 @@ public class SecurityConfig {
                 .clearAuthentication(true)
                 .permitAll()
             )
-            .csrf(csrf -> csrf.disable());
+            .csrf(csrf -> csrf.disable()); 
 
         DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
         authenticationProvider.setUserDetailsService(usuarioService);
