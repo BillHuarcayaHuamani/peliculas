@@ -17,7 +17,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority; // Importar Collectors
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -28,8 +28,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.peliculas.peliculas.model.Personal;
 import com.peliculas.peliculas.model.Usuario;
+import com.peliculas.peliculas.model.UsuarioDisplayDTO;
 import com.peliculas.peliculas.repository.PersonalRepository;
-import com.peliculas.peliculas.repository.UsuarioRepository;
+import com.peliculas.peliculas.repository.UsuarioRepository; 
 
 @Service
 public class UsuarioService implements UserDetailsService {
@@ -38,12 +39,12 @@ public class UsuarioService implements UserDetailsService {
 
     private final UsuarioRepository usuarioRepository;
     private final BCryptPasswordEncoder passwordEncoder;
-    private final PersonalRepository personalRepository;
+    private final PersonalRepository personalRepository; 
 
     public UsuarioService(UsuarioRepository usuarioRepository, BCryptPasswordEncoder passwordEncoder, PersonalRepository personalRepository) {
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
-        this.personalRepository = personalRepository;
+        this.personalRepository = personalRepository; 
         try {
             Files.createDirectories(Paths.get(UPLOAD_DIR));
         } catch (IOException e) {
@@ -98,7 +99,6 @@ public class UsuarioService implements UserDetailsService {
         return authorities;
     }
 
-
     public Usuario autenticar(String email, String rawPassword) {
         try {
             UserDetails userDetails = loadUserByUsername(email);
@@ -109,5 +109,32 @@ public class UsuarioService implements UserDetailsService {
             return null;
         }
         return null;
+    }
+
+    public List<UsuarioDisplayDTO> getAllUsuariosForDisplay() {
+        List<Usuario> allUsers = usuarioRepository.findAll();
+        List<UsuarioDisplayDTO> displayUsers = new ArrayList<>();
+
+        for (Usuario user : allUsers) {
+            List<String> roles = new ArrayList<>();
+            roles.add("ROLE_USER"); 
+
+            Optional<Personal> optionalPersonal = personalRepository.findByEmail(user.getEmail());
+            if (optionalPersonal.isPresent()) {
+                Personal personal = optionalPersonal.get();
+                if ("administrador".equalsIgnoreCase(personal.getCargo())) {
+                    roles.add("ROLE_ADMIN");
+                    roles.add("ROLE_TRABAJADOR");
+                } else if ("trabajador".equalsIgnoreCase(personal.getCargo())) {
+                    roles.add("ROLE_TRABAJADOR");
+                }
+            }
+            displayUsers.add(new UsuarioDisplayDTO(user, roles));
+        }
+        return displayUsers;
+    }
+
+    public PersonalRepository getPersonalRepository() {
+        return personalRepository;
     }
 }

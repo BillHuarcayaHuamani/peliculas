@@ -99,6 +99,9 @@
                                 <li>
                                     <a class="dropdown-item" th:href="@{/mis-favoritos}">Mis Favoritos</a>
                                 </li>
+                                <li th:if="${isAdmin}">
+                                    <a class="dropdown-item" th:href="@{/admin/usuarios}">Listar Usuarios</a>
+                                </li>
                             </ul>
                         </li>
 

@@ -4,11 +4,17 @@
  */
 package com.peliculas.peliculas.controller;
 
+import java.io.ByteArrayOutputStream; 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List; 
 import java.util.Optional;
 
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row; 
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal; 
@@ -25,7 +31,9 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.peliculas.peliculas.model.Favoritos;
 import com.peliculas.peliculas.model.Pelicula;
+import com.peliculas.peliculas.model.PeliculaConFavoritoInfo;
 import com.peliculas.peliculas.model.Usuario;
+import com.peliculas.peliculas.model.UsuarioDisplayDTO;
 import com.peliculas.peliculas.repository.PeliculaRepository; 
 import com.peliculas.peliculas.repository.UsuarioRepository;
 import com.peliculas.peliculas.service.FavoritosService; 
@@ -130,26 +138,45 @@ public class UsuarioController {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         String email = userDetails.getUsername();
         
-        Optional<Usuario> optionalUsuario = usuarioRepository.findByEmail(email);
-        if (optionalUsuario.isEmpty()) {
+        Optional<Usuario> optionalUsuarioAutenticado = usuarioRepository.findByEmail(email);
+        if (optionalUsuarioAutenticado.isEmpty()) {
             return "redirect:/login?error=user-not-found";
         }
-        Long usuarioId = optionalUsuario.get().getId();
+        Long usuarioIdAutenticado = optionalUsuarioAutenticado.get().getId();
 
-        model.addAttribute("usuario", optionalUsuario.get());
+        model.addAttribute("usuario", optionalUsuarioAutenticado.get());
         boolean isPersonal = userDetails.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_TRABAJADOR") || a.getAuthority().equals("ROLE_ADMIN"));
         model.addAttribute("isPersonal", isPersonal);
         boolean isAdmin = userDetails.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
         model.addAttribute("isAdmin", isAdmin);
 
-        List<Favoritos> favoritos = favoritosService.getFavoritosByUsuario(usuarioId);
+        List<Favoritos> favoritosRawList;
+
+        if (isPersonal) {
+            favoritosRawList = favoritosService.getAllFavoritos(); 
+            model.addAttribute("mostrarTodosLosFavoritos", true); 
+        } else {
+            favoritosRawList = favoritosService.getFavoritosByUsuario(usuarioIdAutenticado); 
+            model.addAttribute("mostrarTodosLosFavoritos", false);
+        }
         
-        List<Pelicula> peliculasFavoritas = new ArrayList<>();
-        for (Favoritos fav : favoritos) {
-            peliculaRepository.findById(fav.getPeliculaId()).ifPresent(peliculasFavoritas::add);
+        List<PeliculaConFavoritoInfo> peliculasFavoritasDisplay = new ArrayList<>();
+        for (Favoritos fav : favoritosRawList) {
+            Optional<Pelicula> optionalPelicula = peliculaRepository.findById(fav.getPeliculaId());
+            if (optionalPelicula.isPresent()) {
+                Pelicula pelicula = optionalPelicula.get();
+                
+                String usuarioFavoritoNombre = "Usuario Desconocido";
+                Optional<Usuario> favUser = usuarioRepository.findById(fav.getUsuarioId());
+                if (favUser.isPresent()) {
+                    usuarioFavoritoNombre = favUser.get().getNombres() + " " + favUser.get().getApellidos();
+                }
+                
+                peliculasFavoritasDisplay.add(new PeliculaConFavoritoInfo(pelicula, usuarioFavoritoNombre));
+            }
         }
 
-        model.addAttribute("peliculasFavoritas", peliculasFavoritas);
+        model.addAttribute("peliculasFavoritas", peliculasFavoritasDisplay); 
         return "misFavoritos";
     }
 
@@ -170,15 +197,7 @@ public class UsuarioController {
             return;
         }
 
-        String email = userDetails.getUsername(); 
-        Optional<Usuario> optionalUsuario = usuarioRepository.findByEmail(email);
-        if (optionalUsuario.isEmpty()) {
-             response.sendError(HttpServletResponse.SC_NOT_FOUND, "Usuario no encontrado.");
-             return;
-        }
-        Long usuarioId = optionalUsuario.get().getId();
-
-        List<Favoritos> allFavoritos = favoritosService.getFavoritosByUsuario(usuarioId); 
+        List<Favoritos> allFavoritos = favoritosService.getAllFavoritos(); 
 
         byte[] excelBytes = favoritosService.generateExcel(allFavoritos);
 
@@ -186,5 +205,88 @@ public class UsuarioController {
         response.setHeader("Content-Disposition", "attachment; filename=\"peliculas_favoritas.xlsx\"");
         response.getOutputStream().write(excelBytes);
         response.getOutputStream().flush();
+    }
+
+    @GetMapping("/admin/usuarios")
+    public String listarUsuarios(Model model, @AuthenticationPrincipal UserDetails currentUser) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated() || !(authentication.getPrincipal() instanceof UserDetails)) {
+            return "redirect:/login?error=not-authenticated";
+        }
+
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        boolean isAdmin = userDetails.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        
+        if (!isAdmin) {
+            return "redirect:/acceso-denegado"; 
+        }
+
+        Optional<Usuario> optionalUsuario = usuarioRepository.findByEmail(userDetails.getUsername());
+        if (optionalUsuario.isPresent()) {
+            model.addAttribute("usuario", optionalUsuario.get());
+            model.addAttribute("isAdmin", true); 
+            model.addAttribute("isPersonal", true); 
+        } else {
+            return "redirect:/login?error=user-not-found";
+        }
+
+        List<UsuarioDisplayDTO> usuarios = usuarioService.getAllUsuariosForDisplay();
+        model.addAttribute("usuarios", usuarios);
+
+        return "listaUsuarios";
+    }
+
+    @GetMapping("/admin/usuarios/export-excel")
+    public void exportarUsuariosExcel(HttpServletResponse response, @AuthenticationPrincipal UserDetails currentUser) throws IOException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated() || !(authentication.getPrincipal() instanceof UserDetails)) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Necesitas estar autenticado para realizar esta acción.");
+            return;
+        }
+
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        boolean isAdmin = userDetails.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        
+        if (!isAdmin) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Acceso denegado. Solo los administradores pueden exportar la lista de usuarios.");
+            return;
+        }
+
+        List<UsuarioDisplayDTO> usuarios = usuarioService.getAllUsuariosForDisplay();
+
+        try (Workbook workbook = new XSSFWorkbook();
+             ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            Sheet sheet = workbook.createSheet("Lista de Usuarios");
+
+            Row headerRow = sheet.createRow(0);
+            String[] headers = {"ID", "Nombres", "Apellidos", "Email", "Fecha de Registro", "Roles"};
+            for (int i = 0; i < headers.length; i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(headers[i]);
+            }
+
+            int rowNum = 1;
+            for (UsuarioDisplayDTO usuario : usuarios) { 
+                Row row = sheet.createRow(rowNum++);
+                row.createCell(0).setCellValue(usuario.getId());
+                row.createCell(1).setCellValue(usuario.getNombres());
+                row.createCell(2).setCellValue(usuario.getApellidos());
+                row.createCell(3).setCellValue(usuario.getEmail());
+                row.createCell(4).setCellValue(usuario.getFechaDeRegistro() != null ? usuario.getFechaDeRegistro().toString() : "");
+                
+                String rolesString = String.join(", ", usuario.getRoles());
+                row.createCell(5).setCellValue(rolesString);
+            }
+
+            for (int i = 0; i < headers.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
+
+            workbook.write(outputStream);
+            response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            response.setHeader("Content-Disposition", "attachment; filename=\"lista_usuarios.xlsx\"");
+            response.getOutputStream().write(outputStream.toByteArray());
+            response.getOutputStream().flush();
+        }
     }
 }

@@ -38,6 +38,9 @@ public class SecurityConfig {
 
                 .requestMatchers("/favoritos/export-excel").hasAnyRole("TRABAJADOR", "ADMIN")
                 
+                .requestMatchers("/admin/usuarios").hasRole("ADMIN")
+                .requestMatchers("/admin/usuarios/export-excel").hasRole("ADMIN")
+
                 .requestMatchers("/api/peliculas/{peliculaId}/progreso").authenticated()
                 
                 .anyRequest().authenticated()

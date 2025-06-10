@@ -3,9 +3,10 @@ document.getElementById("fechaHora").innerText = new Date().toLocaleString();
 
 const videoPlayer = document.getElementById('moviePlayer');
 
-const peliculaId = window.jsPeliculaId; 
-const ultimaPosicionGuardada = window.ultimaPosicionGuardada; 
-const isFavoritedInitial = window.isFavoritedInitial; 
+const peliculaId = videoPlayer ? parseInt(videoPlayer.dataset.movieId) : 0; 
+const ultimaPosicionGuardada = videoPlayer ? parseFloat(videoPlayer.dataset.ultimaPosicion) : 0.0; 
+const isFavoritedInitial = videoPlayer ? (videoPlayer.dataset.isFavorited === 'true') : false; 
+
 
 console.log('JS: ID de la película:', peliculaId);
 console.log('JS: Última posición guardada:', ultimaPosicionGuardada);
