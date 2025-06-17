@@ -28,7 +28,7 @@ public class Usuario {
     @Column(nullable = false, length = 100)
     private String apellidos;
 
-    @Column(nullable = false, unique = true, length = 100) // unique=true para asegurar que el email sea único
+    @Column(nullable = false, unique = true, length = 100) 
     private String email;
 
     @Column(nullable = false, length = 255)
@@ -38,21 +38,19 @@ public class Usuario {
     private String foto; 
 
     @Column(name = "fecha_de_registro", nullable = false)
-    private LocalDateTime fechaDeRegistro; // Mapea a 'fecha_de_registro' en la BD
+    private LocalDateTime fechaDeRegistro; 
 
 
     public Usuario() {
         
     }
 
-    // Constructor para registro (sin ID y fecha, ya que la BD los genera)
     public Usuario(String nombres, String apellidos, String email, String password, String foto) {
         this.nombres = nombres;
         this.apellidos = apellidos;
         this.email = email;
         this.password = password;
         this.foto = foto;
-        // fechaDeRegistro se establecerá por la BD con DEFAULT CURRENT_TIMESTAMP
     }
 
     public Long getId() {

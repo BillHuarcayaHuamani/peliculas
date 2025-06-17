@@ -10,7 +10,7 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.peliculas.peliculas.model.Usuario; // Para cuando no se encuentre usuarios
+import com.peliculas.peliculas.model.Usuario; 
 
 @Repository
 public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
