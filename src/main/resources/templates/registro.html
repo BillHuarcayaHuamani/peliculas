@@ -25,46 +25,6 @@
                     aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav ms-auto align-items-center">
-                        <li class="nav-item"><a class="nav-link" th:href="@{/}">Página Principal</a></li>
-                        <li class="nav-item"><a class="nav-link" th:href="@{/accion}">Acción</a></li>
-                        <li class="nav-item"><a class="nav-link" th:href="@{/aventura}">Aventura</a></li>
-                        <li class="nav-item"><a class="nav-link" th:href="@{/ciencia}">Ciencia Ficción</a></li>
-                        <li class="nav-item"><a class="nav-link" th:href="@{/comedia}">Comedia</a></li>
-                        <li class="nav-item"><a class="nav-link" th:href="@{/drama}">Drama</a></li>
-
-                        <li class="nav-item dropdown" th:if="${usuario != null}">
-                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button"
-                                id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                <img th:src="@{${usuario.foto} ?: '/assets/img/PersonaLogin.png'}"
-                                    class="rounded-circle me-2" alt="Usuario" width="32" height="32">
-                                <span th:text="${usuario.nombres}">Usuario</span>
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                                <li><a class="dropdown-item" th:href="@{/logout}">Cerrar sesión</a></li>
-                                <li th:if="${isPersonal}">
-                                    <a class="dropdown-item" th:href="@{/peliculas/nueva}">Subir Película</a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" th:href="@{/mis-favoritos}">Mis Favoritos</a>
-                                </li>
-                                <li th:if="${isAdmin}">
-                                    <a class="dropdown-item" th:href="@{/admin/usuarios}">Listar Usuarios</a>
-                                </li>
-                            </ul>
-                        </li>
-
-                        <li class="nav-item" th:if="${usuario == null}">
-                            <a class="nav-link" href="/login">Iniciar Sesión</a>
-                        </li>
-                        <li class="nav-item" th:if="${usuario == null}">
-                            <a class="nav-link" href="/registro">Registrarse</a>
-                        </li>
-
-                    </ul>
-                </div>
             </div>
         </nav>
     </header>
@@ -124,14 +84,6 @@
 
     <footer class="bg-dark text-white py-3 mt-4">
         <div class="container">
-            <ul class="nav justify-content-center border-bottom pb-3 mb-3">
-                <li class="nav-item"><a href="" class="nav-link px-2 link-light">Página Principal</a></li>
-                <li class="nav-item"><a href="" class="nav-link px-2 link-light">Acción</a></li>
-                <li class="nav-item"><a href="" class="nav-link px-2 link-light">Aventura</a></li>
-                <li class="nav-item"><a href="" class="nav-link px-2 link-light">Ciencia Ficción</a></li>
-                <li class="nav-item"><a href="" class="nav-link px-2 link-light">Comedia</a></li>
-                <li class="nav-item"><a href="" class="nav-link px-2 link-light">Drama</a></li>
-            </ul>
             <p class="text-center">&copy; 2025 Catálogo de Películas</p>
         </div>
     </footer>

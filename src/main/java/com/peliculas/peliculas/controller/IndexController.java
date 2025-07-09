@@ -1,3 +1,4 @@
+// src/main/java/com/peliculas/peliculas/controller/IndexController.java
 package com.peliculas.peliculas.controller;
 
 import java.util.Arrays;
@@ -6,7 +7,7 @@ import java.util.Optional;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails; 
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,7 +30,7 @@ public class IndexController {
     private final PeliculaService peliculaService;
 
     public IndexController(CategoriaRepository categoriaRepository, UsuarioRepository usuarioRepository,
-                           PeliculaService peliculaService) { 
+                           PeliculaService peliculaService) {
         this.categoriaRepository = categoriaRepository;
         this.usuarioRepository = usuarioRepository;
         this.peliculaService = peliculaService;
@@ -50,32 +51,32 @@ public class IndexController {
         model.addAttribute("peliculaIniciosHardcodeadas", peliculaIniciosHardcodeadas);
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        
-        model.addAttribute("isPersonal", false); 
-        model.addAttribute("isAdmin", false); 
+
+        // Inicializar isPersonal e isAdmin a false por defecto para evitar errores de Thymeleaf
+        model.addAttribute("isPersonal", false);
+        model.addAttribute("isAdmin", false);
 
         if (authentication != null && authentication.isAuthenticated() &&
-            authentication.getPrincipal() instanceof UserDetails) { 
-            
+            authentication.getPrincipal() instanceof UserDetails) {
+
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-            String email = userDetails.getUsername(); 
-            
+            String email = userDetails.getUsername();
+
             Optional<Usuario> optionalUsuario = usuarioRepository.findByEmail(email);
             if (optionalUsuario.isPresent()) {
                 Usuario usuarioAutenticado = optionalUsuario.get();
                 model.addAttribute("usuario", usuarioAutenticado);
-                
+
                 boolean isPersonalUser = userDetails.getAuthorities().stream()
-                                            .anyMatch(a -> a.getAuthority().equals("ROLE_TRABAJADOR") || a.getAuthority().equals("ROLE_ADMIN"));
+                                                    .anyMatch(a -> a.getAuthority().equals("ROLE_TRABAJADOR") || a.getAuthority().equals("ROLE_ADMIN"));
                 model.addAttribute("isPersonal", isPersonalUser);
 
                 boolean isAdminUser = userDetails.getAuthorities().stream()
-                                            .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+                                                   .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
                 model.addAttribute("isAdmin", isAdminUser);
             }
-        } else if (authentication != null && authentication.isAuthenticated() && 
-                   authentication.getPrincipal() instanceof String && authentication.getPrincipal().equals("anonymousUser")) {
         }
+        // No es necesario un else if para anonymousUser aquí, ya que isPersonal/isAdmin ya están en false por defecto
         return "index";
     }
 
@@ -85,39 +86,36 @@ public class IndexController {
         return "redirect:/login?logout";
     }
 
-
     private String cargarPeliculasPorGenero(String genero, Model model) {
         List<Pelicula> peliculas = peliculaService.listarPeliculasPorGenero(genero);
         model.addAttribute("peliculas", peliculas);
         model.addAttribute("generoActual", genero);
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        
-        // Por defecto
-        model.addAttribute("isPersonal", false); 
-        model.addAttribute("isAdmin", false); 
+
+        // Inicializar isPersonal e isAdmin a false por defecto
+        model.addAttribute("isPersonal", false);
+        model.addAttribute("isAdmin", false);
 
         if (authentication != null && authentication.isAuthenticated() &&
-            authentication.getPrincipal() instanceof UserDetails) { 
-            
+            authentication.getPrincipal() instanceof UserDetails) {
+
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-            String email = userDetails.getUsername(); 
-            
+            String email = userDetails.getUsername();
+
             Optional<Usuario> optionalUsuario = usuarioRepository.findByEmail(email);
             if (optionalUsuario.isPresent()) {
                 Usuario usuarioAutenticado = optionalUsuario.get();
                 model.addAttribute("usuario", usuarioAutenticado);
-                
+
                 boolean isPersonalUser = userDetails.getAuthorities().stream()
-                                            .anyMatch(a -> a.getAuthority().equals("ROLE_TRABAJADOR") || a.getAuthority().equals("ROLE_ADMIN"));
+                                                    .anyMatch(a -> a.getAuthority().equals("ROLE_TRABAJADOR") || a.getAuthority().equals("ROLE_ADMIN"));
                 model.addAttribute("isPersonal", isPersonalUser);
 
                 boolean isAdminUser = userDetails.getAuthorities().stream()
-                                            .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+                                                   .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
                 model.addAttribute("isAdmin", isAdminUser);
             }
-        } else if (authentication != null && authentication.isAuthenticated() && 
-                   authentication.getPrincipal() instanceof String && authentication.getPrincipal().equals("anonymousUser")) {
         }
         return "peliculasPorGenero";
     }
@@ -132,7 +130,7 @@ public class IndexController {
         return cargarPeliculasPorGenero("Aventura", model);
     }
 
-    @GetMapping("/ciencia") 
+    @GetMapping("/ciencia")
     public String mostrarPeliculasCienciaFiccion(Model model) {
         return cargarPeliculasPorGenero("Ciencia Ficción", model);
     }

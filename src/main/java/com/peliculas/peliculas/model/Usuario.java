@@ -1,8 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
-
 package com.peliculas.peliculas.model;
 
 import java.time.LocalDateTime;
@@ -18,7 +13,7 @@ import jakarta.persistence.Table;
 @Table(name = "usuarios")
 public class Usuario {
 
-    @Id 
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
@@ -28,21 +23,21 @@ public class Usuario {
     @Column(nullable = false, length = 100)
     private String apellidos;
 
-    @Column(nullable = false, unique = true, length = 100) 
+    @Column(nullable = false, unique = true, length = 100)
     private String email;
 
     @Column(nullable = false, length = 255)
     private String password;
 
-    @Column(length = 255) 
-    private String foto; 
+    @Column(length = 255)
+    private String foto;
 
     @Column(name = "fecha_de_registro", nullable = false)
-    private LocalDateTime fechaDeRegistro; 
+    private LocalDateTime fechaDeRegistro;
 
 
     public Usuario() {
-        
+
     }
 
     public Usuario(String nombres, String apellidos, String email, String password, String foto) {

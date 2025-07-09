@@ -1,12 +1,13 @@
+// src/main/java/com/peliculas/peliculas/controller/PeliculaController.java
 package com.peliculas.peliculas.controller;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.List; 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.slf4j.Logger;
+import org.slf4j.Logger; // Importar Collectors, si no está ya
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.Authentication;
@@ -27,10 +28,10 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.peliculas.peliculas.model.Pelicula;
 import com.peliculas.peliculas.model.Personal;
-import com.peliculas.peliculas.model.Usuario;
-import com.peliculas.peliculas.repository.PersonalRepository; 
-import com.peliculas.peliculas.repository.UsuarioRepository;
-import com.peliculas.peliculas.service.FavoritosService; 
+import com.peliculas.peliculas.model.Usuario; // Asegúrate de que esta clase exista
+import com.peliculas.peliculas.repository.PersonalRepository;
+import com.peliculas.peliculas.repository.UsuarioRepository; // Asegúrate de que esta interfaz exista
+import com.peliculas.peliculas.service.FavoritosService;
 import com.peliculas.peliculas.service.PeliculaService;
 import com.peliculas.peliculas.service.ProgresoVisualizacionService;
 
@@ -42,19 +43,19 @@ public class PeliculaController {
     private final PeliculaService peliculaService;
     private final ProgresoVisualizacionService progresoVisualizacionService;
     private final UsuarioRepository usuarioRepository;
-    private final PersonalRepository personalRepository; 
+    private final PersonalRepository personalRepository;
     private final FavoritosService favoritosService;
 
     public PeliculaController(PeliculaService peliculaService,
-            ProgresoVisualizacionService progresoVisualizacionService,
-            UsuarioRepository usuarioRepository,
-            PersonalRepository personalRepository,
-            FavoritosService favoritosService) { 
+                              ProgresoVisualizacionService progresoVisualizacionService,
+                              UsuarioRepository usuarioRepository,
+                              PersonalRepository personalRepository,
+                              FavoritosService favoritosService) {
         this.peliculaService = peliculaService;
         this.progresoVisualizacionService = progresoVisualizacionService;
         this.usuarioRepository = usuarioRepository;
-        this.personalRepository = personalRepository; 
-        this.favoritosService = favoritosService; 
+        this.personalRepository = personalRepository;
+        this.favoritosService = favoritosService;
     }
 
     @GetMapping("/peliculas/nueva")
@@ -62,22 +63,22 @@ public class PeliculaController {
         model.addAttribute("pelicula", new Pelicula());
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated() &&
-            authentication.getPrincipal() instanceof UserDetails) { 
+            authentication.getPrincipal() instanceof UserDetails) {
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
             String email = userDetails.getUsername();
             Optional<Usuario> optionalUsuario = usuarioRepository.findByEmail(email);
             if (optionalUsuario.isPresent()) {
                 model.addAttribute("usuario", optionalUsuario.get());
                 boolean isAdmin = userDetails.getAuthorities().stream()
-                                     .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
-                model.addAttribute("isAdmin", isAdmin); 
+                                             .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+                model.addAttribute("isAdmin", isAdmin);
                 boolean isPersonal = userDetails.getAuthorities().stream()
-                                            .anyMatch(a -> a.getAuthority().equals("ROLE_TRABAJADOR") || a.getAuthority().equals("ROLE_ADMIN"));
+                                                 .anyMatch(a -> a.getAuthority().equals("ROLE_TRABAJADOR") || a.getAuthority().equals("ROLE_ADMIN"));
                 model.addAttribute("isPersonal", isPersonal);
             }
         }
-        
-        List<String> generosFijos = Arrays.asList("Acción", "Aventura", "Ciencia Ficción", "Comedia", "Drama");
+
+        List<String> generosFijos = Arrays.asList("Acción", "Aventura", "Ciencia Ficción", "Comedia", "Drama", "Contenido Nacional", "Romance", "Thriller", "Musical", "Terror", "Animación", "Documental");
         model.addAttribute("generosFijos", generosFijos);
 
         return "nuevaPelicula";
@@ -85,27 +86,27 @@ public class PeliculaController {
 
     @PostMapping("/peliculas")
     public String guardarPelicula(@ModelAttribute Pelicula pelicula,
-            @RequestParam(value = "portadaFile", required = false) MultipartFile portadaFile,
-            @RequestParam(value = "videoFile", required = false) MultipartFile videoFile,
-            RedirectAttributes redirectAttributes,
-            @AuthenticationPrincipal UserDetails currentUser) {
+                                  @RequestParam(value = "portadaFile", required = false) MultipartFile portadaFile,
+                                  @RequestParam(value = "videoFile", required = false) MultipartFile videoFile,
+                                  RedirectAttributes redirectAttributes,
+                                  @AuthenticationPrincipal UserDetails currentUser) {
         try {
             if (currentUser == null || currentUser.getUsername().equals("anonymousUser")) {
                 throw new IllegalStateException("Solo el personal autenticado puede subir películas.");
             }
 
             boolean hasWorkerOrAdminRole = currentUser.getAuthorities().stream()
-                                        .anyMatch(a -> a.getAuthority().equals("ROLE_TRABAJADOR") || a.getAuthority().equals("ROLE_ADMIN"));
-            
+                                                     .anyMatch(a -> a.getAuthority().equals("ROLE_TRABAJADOR") || a.getAuthority().equals("ROLE_ADMIN"));
+
             if (!hasWorkerOrAdminRole) {
                 throw new IllegalStateException("Acceso denegado. Solo el personal (trabajadores o administradores) puede subir películas.");
             }
 
             String email = currentUser.getUsername();
-            Optional<Personal> optionalPersonal = personalRepository.findByEmail(email); 
+            Optional<Personal> optionalPersonal = personalRepository.findByEmail(email);
 
             if (optionalPersonal.isPresent()) {
-                pelicula.setPersonalId(optionalPersonal.get().getId()); 
+                pelicula.setPersonalId(optionalPersonal.get().getId());
             } else {
                 throw new IllegalStateException("No se pudo encontrar la información del personal para asignar la película.");
             }
@@ -136,8 +137,8 @@ public class PeliculaController {
 
     @GetMapping("/pelicula/{id}")
     public String mostrarDetallePelicula(@PathVariable Long id, Model model,
-            @AuthenticationPrincipal UserDetails currentUser,
-            RedirectAttributes redirectAttributes) {
+                                         @AuthenticationPrincipal UserDetails currentUser,
+                                         RedirectAttributes redirectAttributes) {
 
         Optional<Pelicula> optionalPelicula = peliculaService.findById(id);
 
@@ -148,7 +149,7 @@ public class PeliculaController {
 
         Pelicula pelicula = optionalPelicula.get();
         model.addAttribute("pelicula", pelicula);
-        model.addAttribute("jsPeliculaId", id);
+        model.addAttribute("jsPeliculaId", id); // Para usar en JavaScript
 
         if (currentUser != null && !currentUser.getUsername().equals("anonymousUser")) {
             usuarioRepository.findByEmail(currentUser.getUsername()).ifPresent(user -> {
@@ -157,17 +158,17 @@ public class PeliculaController {
                 model.addAttribute("ultimaPosicion", ultimaPosicion);
 
                 boolean isFavorited = favoritosService.isFavorited(user.getId(), id);
-                model.addAttribute("isFavorited", isFavorited); 
+                model.addAttribute("isFavorited", isFavorited);
             });
             boolean isPersonal = currentUser.getAuthorities().stream()
-                                        .anyMatch(a -> a.getAuthority().equals("ROLE_TRABAJADOR") || a.getAuthority().equals("ROLE_ADMIN"));
+                                             .anyMatch(a -> a.getAuthority().equals("ROLE_TRABAJADOR") || a.getAuthority().equals("ROLE_ADMIN"));
             model.addAttribute("isPersonal", isPersonal);
             boolean isAdmin = currentUser.getAuthorities().stream()
-                                     .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+                                         .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
             model.addAttribute("isAdmin", isAdmin);
         } else {
             model.addAttribute("ultimaPosicion", 0.0f);
-            model.addAttribute("isFavorited", false); 
+            model.addAttribute("isFavorited", false);
             model.addAttribute("isPersonal", false);
             model.addAttribute("isAdmin", false);
         }
@@ -178,8 +179,8 @@ public class PeliculaController {
     @PostMapping("/api/peliculas/{peliculaId}/progreso")
     @ResponseBody
     public Map<String, String> actualizarProgreso(@PathVariable Long peliculaId,
-            @RequestBody Map<String, Float> payload,
-            @AuthenticationPrincipal UserDetails currentUser) {
+                                                  @RequestBody Map<String, Float> payload,
+                                                  @AuthenticationPrincipal UserDetails currentUser) {
         if (currentUser == null || currentUser.getUsername().equals("anonymousUser")) {
             return Map.of("status", "error", "message", "Usuario no autenticado");
         }
@@ -226,5 +227,43 @@ public class PeliculaController {
             logger.error("Error al alternar favorito para usuario {} pelicula {}: {}", usuarioId, peliculaId, e.getMessage(), e);
             return Map.of("status", "error", "message", "Error al alternar favorito: " + e.getMessage(), "isFavorited", false);
         }
+    }
+
+    // --- NUEVOS ENDPOINTS PARA BÚSQUEDA Y RECOMENDACIÓN ---
+
+    /**
+     * Endpoint API para buscar películas.
+     * Retorna una lista de películas que coinciden con el término de búsqueda.
+     * @param query El término de búsqueda.
+     * @return Una lista de objetos Pelicula.
+     */
+    @GetMapping("/api/movies/search")
+    @ResponseBody // Indica que el retorno será directamente el cuerpo de la respuesta HTTP (JSON)
+    public List<Pelicula> searchMovies(@RequestParam String query) {
+        return peliculaService.searchMovies(query);
+    }
+
+    /**
+     * Endpoint API para obtener recomendaciones de películas para el usuario autenticado.
+     * Retorna una lista de películas recomendadas.
+     * @param currentUser El usuario autenticado (inyectado por Spring Security).
+     * @return Una lista de objetos Pelicula.
+     */
+    @GetMapping("/api/movies/recommendations")
+    @ResponseBody
+    public List<Pelicula> getRecommendations(@AuthenticationPrincipal UserDetails currentUser) {
+        if (currentUser == null || currentUser.getUsername().equals("anonymousUser")) {
+            // Si no hay usuario autenticado, no se pueden dar recomendaciones personalizadas.
+            // Podrías retornar películas populares o una lista vacía.
+            return List.of();
+        }
+
+        Optional<Usuario> optionalUsuario = usuarioRepository.findByEmail(currentUser.getUsername());
+        if (optionalUsuario.isEmpty()) {
+            return List.of(); // Usuario no encontrado en la BD
+        }
+        Long userId = optionalUsuario.get().getId();
+
+        return peliculaService.getRecommendedMovies(userId);
     }
 }
