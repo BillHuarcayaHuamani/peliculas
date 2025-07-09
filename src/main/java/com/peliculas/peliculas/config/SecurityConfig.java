@@ -1,4 +1,3 @@
-// src/main/java/com/peliculas/peliculas/config/SecurityConfig.java
 package com.peliculas.peliculas.config;
 
 import org.springframework.context.annotation.Bean;
@@ -27,16 +26,11 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(authorize -> authorize
-                // Rutas que son accesibles para TODOS (incluyendo no autenticados)
                 .requestMatchers("/registro", "/login", "/css/**", "/js/**", "/imagenes/**", "/uploads/**",
                                  "/pelicula/{id}", "/accion", "/aventura", "/ciencia", "/comedia", "/drama").permitAll()
 
-                // La ruta "/" (página principal) ahora requiere autenticación
-                // Esto forzará a los usuarios no autenticados a ir a /login
-                // Las APIs de búsqueda también son públicas
                 .requestMatchers("/api/movies/search").permitAll()
 
-                // Rutas que requieren roles específicos o autenticación
                 .requestMatchers("/registro-personal").hasRole("ADMIN")
                 .requestMatchers("/peliculas/nueva").hasAnyRole("TRABAJADOR", "ADMIN")
                 .requestMatchers(org.springframework.http.HttpMethod.POST, "/peliculas").hasAnyRole("TRABAJADOR", "ADMIN")
@@ -50,25 +44,24 @@ public class SecurityConfig {
                 .requestMatchers("/admin/usuarios/export-excel").hasRole("ADMIN")
 
                 .requestMatchers("/api/peliculas/{peliculaId}/progreso").authenticated()
-                .requestMatchers("/api/movies/recommendations").authenticated() // Las recomendaciones requieren autenticación
+                .requestMatchers("/api/movies/recommendations").authenticated() 
 
-                // Cualquier otra solicitud requiere autenticación
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form
-                .loginPage("/login") // La página de login personalizada
-                .permitAll() // Permitir acceso a la página de login
-                .defaultSuccessUrl("/", true) // Redirigir a la página principal después de un login exitoso
-                .failureUrl("/login?error") // Redirigir a login con error si falla
+                .loginPage("/login") 
+                .permitAll() 
+                .defaultSuccessUrl("/", true) 
+                .failureUrl("/login?error") 
             )
             .logout(logout -> logout
-                .logoutUrl("/logout") // URL para cerrar sesión
-                .logoutSuccessUrl("/login?logout") // Redirigir a login después de cerrar sesión
-                .invalidateHttpSession(true) // Invalidar la sesión HTTP
-                .clearAuthentication(true) // Limpiar la autenticación
-                .permitAll() // Permitir acceso a la URL de logout
+                .logoutUrl("/logout") 
+                .logoutSuccessUrl("/login?logout") 
+                .invalidateHttpSession(true) 
+                .clearAuthentication(true) 
+                .permitAll() 
             )
-            .csrf(csrf -> csrf.disable()); // Deshabilitar CSRF para simplificar (considerar habilitar en producción)
+            .csrf(csrf -> csrf.disable()); 
 
         DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
         authenticationProvider.setUserDetailsService(usuarioService);

@@ -39,7 +39,6 @@ public class ProgresoVisualizacion {
         this.ultimaActualizacion = LocalDateTime.now();
     }
 
-    // Getters y Setters
     public Long getId() {
         return id;
     }

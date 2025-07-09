@@ -1,4 +1,3 @@
-// src/main/java/com/peliculas/peliculas/controller/IndexController.java
 package com.peliculas.peliculas.controller;
 
 import java.util.Arrays;
@@ -52,7 +51,6 @@ public class IndexController {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        // Inicializar isPersonal e isAdmin a false por defecto para evitar errores de Thymeleaf
         model.addAttribute("isPersonal", false);
         model.addAttribute("isAdmin", false);
 
@@ -76,7 +74,6 @@ public class IndexController {
                 model.addAttribute("isAdmin", isAdminUser);
             }
         }
-        // No es necesario un else if para anonymousUser aquí, ya que isPersonal/isAdmin ya están en false por defecto
         return "index";
     }
 
@@ -93,7 +90,6 @@ public class IndexController {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        // Inicializar isPersonal e isAdmin a false por defecto
         model.addAttribute("isPersonal", false);
         model.addAttribute("isAdmin", false);
 

@@ -30,7 +30,6 @@ public class Personal {
     @Column(nullable = false, length = 50)
     private String cargo; 
 
-    // Constructores
     public Personal() {
     }
 

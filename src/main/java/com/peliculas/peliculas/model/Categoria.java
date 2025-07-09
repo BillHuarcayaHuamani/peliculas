@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.peliculas.peliculas.model;
 
 import jakarta.persistence.Entity;
@@ -10,10 +6,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 
 
-/**
- *
- * @author INTEL
- */
 @Entity
 public class Categoria {
     @Id
@@ -23,10 +15,6 @@ public class Categoria {
     private String nombre;
     private String enlace;
     private String imagen;
-
-    
-
-    // getters y setters
 
     public Long getId() {
         return id;

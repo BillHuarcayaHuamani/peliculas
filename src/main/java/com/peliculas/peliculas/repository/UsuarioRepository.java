@@ -1,8 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
-
 package com.peliculas.peliculas.repository;
 
 import java.util.Optional;
@@ -15,9 +10,7 @@ import com.peliculas.peliculas.model.Usuario;
 @Repository
 public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
-    // Método personalizado para buscar un usuario por su email
     Optional<Usuario> findByEmail(String email);
 
-    // Método personalizado para buscar un usuario por email y password
     Optional<Usuario> findByEmailAndPassword(String email, String password);
 }

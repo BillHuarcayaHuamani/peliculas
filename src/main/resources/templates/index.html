@@ -5,24 +5,20 @@
     <meta charset="UTF-8">
     <title>Catálogo de Películas</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Updated Bootstrap CDN to 5.3.3 with correct integrity -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
         xintegrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <!-- Using defer for JS load -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         xintegrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
         crossorigin="anonymous"></script>
     <link rel="stylesheet" href="css/estiloIndex.css">
-    <!-- Font Awesome para iconos (ej. lupa de búsqueda) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" xintegrity="sha512-Fo3rlrZj/k7ujTnHg4CGR2D7kSs0V4LLanw2qksYuRlEzO+tcaEPQogQ0KaoGN26/zrn20ImR1DfuLWnOo7aBA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <style>
-        /* Estilos adicionales para la barra de búsqueda y secciones */
         .search-container {
             margin-bottom: 30px;
         }
         .search-input {
-            padding-right: 40px; /* Espacio para el icono de búsqueda */
+            padding-right: 40px; 
         }
         .search-icon {
             position: absolute;
@@ -52,7 +48,7 @@
         }
         .movie-card-dynamic img {
             width: 100%;
-            height: 250px; /* Altura fija para portadas en resultados */
+            height: 250px; 
             object-fit: cover;
             border-bottom: 1px solid #444;
         }
@@ -97,7 +93,6 @@
                         <li class="nav-item"><a class="nav-link" th:href="@{/comedia}">Comedia</a></li>
                         <li class="nav-item"><a class="nav-link" th:href="@{/drama}">Drama</a></li>
 
-                        <!-- Usuario logueado -->
                         <li class="nav-item dropdown" th:if="${usuario != null}">
                             <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button"
                                 id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
@@ -107,7 +102,6 @@
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                                 <li><a class="dropdown-item" th:href="@{/logout}">Cerrar sesión</a></li>
-                                <!-- Link to add new movie if user has role of personal_id -->
                                 <li th:if="${isPersonal}">
                                     <a class="dropdown-item" th:href="@{/peliculas/nueva}">Subir Película</a>
                                 </li>
@@ -123,7 +117,6 @@
                             </ul>
                         </li>
 
-                        <!-- Usuario no logueado -->
                         <li class="nav-item" th:if="${usuario == null}">
                             <a class="nav-link" href="/login">Iniciar Sesión</a>
                         </li>
@@ -138,29 +131,24 @@
     </header>
 
     <main class="container my-5">
-        <!-- Sección de Búsqueda -->
         <section class="search-container">
             <h2 class="section-header">Búsqueda de Películas</h2>
             <div class="position-relative mb-4">
                 <input type="text" id="searchInput" class="form-control form-control-lg search-input" placeholder="Buscar por título, director, actor o género...">
-                <i class="fas fa-search search-icon"></i> <!-- Icono de lupa, requiere Font Awesome -->
+                <i class="fas fa-search search-icon"></i> 
             </div>
             <div id="searchResults" class="movie-grid">
-                <!-- Los resultados de la búsqueda se cargarán aquí dinámicamente -->
             </div>
             <p id="noSearchResults" class="text-center text-muted mt-3" style="display: none;">No se encontraron películas que coincidan con su búsqueda.</p>
         </section>
 
-        <!-- Sección de Recomendaciones -->
         <section class="mt-5">
             <h2 class="section-header">Recomendaciones para Ti</h2>
             <div id="recommendationsResults" class="movie-grid">
-                <!-- Las recomendaciones se cargarán aquí dinámicamente -->
             </div>
             <p id="noRecommendations" class="text-center text-muted mt-3" style="display: none;">Inicia sesión y mira algunas películas para obtener recomendaciones personalizadas.</p>
         </section>
 
-        <!-- Sección de Categorías Existente -->
         <section class="container mt-4">
             <h2>Categoría de Películas</h2>
             <div class="row">
@@ -205,13 +193,9 @@
         </div>
     </footer>
 
-    <!-- Script para fecha y hora -->
     <script>
         document.getElementById("fechaHora").innerText = new Date().toLocaleString();
     </script>
-    <!-- Incluir Font Awesome para el icono de búsqueda (si no se carga por CDN CSS) -->
-    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js" xintegrity="sha512-..." crossorigin="anonymous"></script> -->
-    <!-- Tu archivo JavaScript personalizado para la lógica de búsqueda y recomendación -->
     <script th:src="@{/js/main.js}"></script>
 </body>
 
